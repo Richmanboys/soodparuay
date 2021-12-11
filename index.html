@@ -1,0 +1,366 @@
+    //สูตรบาคาร่าพาเพลิน
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <style>
+    body {
+        background-image: url("smile.jpg");
+        font-family: arial;
+        background-color: #0f0505;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    table, th, td {
+        border: 1px solid rgb(174, 243, 46);
+    }
+    td {
+        width: 25px;
+        height: 25px;
+    }
+    .result {
+        display: inline-block;
+        width: 50%;
+    }
+    .button {
+        display: inline-block;
+        min-width: 80px;
+        max-width: 80px;
+        padding: 20px;
+        font-size: 15px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: rgb(124, 228, 6);
+        border: none;
+        border-radius: 30px;
+        box-shadow: 0 0px rgb(17, 8, 8);
+    }
+    .player {
+        background-color: blue;
+    }
+    .banker {
+        background-color: red;
+    }
+    .oo {
+        background-color: rgb(20, 2, 2);
+    }
+    .tie {
+        background-color: green;
+    }
+    .button:active {
+        box-shadow: 0 2px rgb(44, 21, 21);
+        transform: translateY(4px);
+    }
+    .winlose {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        font-size: 15px;
+        width: 18px;
+        height: 18px;
+        border-radius: 18px;
+    }
+    .win {
+        color: #009933;
+    }
+    .lose {
+        color: red;
+    }
+    .score {
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        font-size: 12px;
+        color: #fff;
+        width: 18px;
+        height: 18px;
+        border-radius: 18px;
+    }
+    .p {
+        background-color: blue;
+    }
+    .b {
+        background-color: red;
+    }
+    .t {
+        background-color: green;
+    }
+    </style>
+    <script>
+    var pbarray = [];
+    var pbtarray = [];
+    var playerbead = '<div class="score p"><div>P</div></div>';
+    var bankerbead = '<div class="score b"><div>B</div></div>';
+    var tiebead = '<div class="score t"><div>T</div></div>';
+    var win = '<div class="winlose win"><div>&#10003;</div></div>';
+    var lose = '<div class="winlose lose"><div>&#10007;</div></div>';
+    var blank = '<div class="winlose"><div>-</div></div>';
+    var pbstep1 = [];
+    var pbstep2 = [];
+    var pbstep3 = [];
+    var pbstep4 = [];
+    var pbwl = [];
+    var pbwls = [];
+    
+    function loadtable(icols,irows,namerow){
+    var table = "";
+    var cols = icols;
+    var rows = irows;
+    var ii = 0;
+    
+    for(iii = 0;iii<cols;iii++){
+    table = table + "<col width=\"13\">"
+    }
+    
+    for(r=0;r<rows;r++){
+    table += "<tr>";
+       for(c=0;c<cols;c++){
+       table += "<td id=\"" + namerow +"_"+ + ((r+1)+(c*(rows))) + "\" valign=\"middle\">" + "" + "</td>";
+       ii++;
+    
+       }
+    table += "</tr>";
+    }
+    
+    //document.body.innerHTML = (document.body.innerHTML + "<table id=\"" + "tbl" + namerow + "\">"  + table + "</table><br>");
+     document.getElementById(namerow+"table").innerHTML = "<table style=\"table-layout: fixed;width:673px;\" id=\"" + "tbl" + namerow + "\">"  + table + "</table><br>";
+    }
+    
+    
+    function undo(){
+    for( i = 1 ; i <= pbtarray.length ; i++ ){
+    document.getElementById("beadroad_"+i).innerHTML = "";
+    }
+    for( i = 1 ; i <= pbarray.length ; i++ ){
+    document.getElementById("road3_"+i).innerHTML = "";
+    document.getElementById("road3r_"+ (i)).innerHTML = "";
+    if( pbarray.length == 1 ){ document.getElementById("road3r_"+ (1) ).innerHTML = ""; }
+    }
+    
+    if( pbtarray[pbtarray.length-1] === "T" ){
+     pbtarray.pop();
+    }else{
+     pbtarray.pop();
+     pbarray.pop();
+     pbstep1.pop();
+     pbstep2.pop();
+    }
+    
+    //console.log(pbtarray);
+    insert("C");
+    }
+    
+    function insert(bet){
+    if(pbtarray.length < (16*6)){
+    if(bet != "C"){
+    pbtarray.push(bet);
+    if( bet != "T" ){
+     pbarray.push(bet);
+    }
+    }
+    //console.log(pbtarray);
+    for( i = 1 ; i <= pbtarray.length ; i++ ){
+    switch (pbtarray[i-1]) {
+    case "P":
+     document.getElementById("beadroad_"+i).innerHTML = playerbead;
+     break;
+    case "B":
+     document.getElementById("beadroad_"+i).innerHTML = bankerbead;
+     break;
+    case "T":
+     document.getElementById("beadroad_"+i).innerHTML = tiebead;
+     break;
+    }
+    }
+    
+    pbstep1 = [];
+    pbstep2 = ["-"];
+    pbstep3 = ["-"];
+    pbstep4 = [0];
+    pbwl = ["-"];
+    pbwls = [];
+    for( i = 1 ; i <= pbarray.length ; i++ ){
+    switch (pbarray[i-1]) {
+    case "P":
+     document.getElementById("road3_"+i).innerHTML = playerbead;
+     break;
+    case "B":
+     document.getElementById("road3_"+i).innerHTML = bankerbead;
+     break;
+    }
+    
+    if( i >= 4 ){
+     if( pbarray[i-1] == pbarray[i-4] ){ pbstep1.push(1); }else{ pbstep1.push(-1); }
+    }else{
+     pbstep1.push("");
+    }
+    
+    if( i >= 6 ){
+     if( (i)%3 == 0 ){
+       if( pbstep1[i-1]+pbstep1[i-2]+pbstep1[i-3] > 0 ){
+            pbstep2.push("s");
+        }else{
+            pbstep2.push("d");
+        }
+     }else{
+       pbstep2.push( pbstep2[i - 1] );
+     }
+    
+     if( pbstep2[i] == "s" ){
+        pbstep3.push( pbarray[i-3] );
+     }else{
+        switch (pbarray[i-3]) {
+        case "P":
+         pbstep3.push( "B" );
+         break;
+        case "B":
+         pbstep3.push( "P" );
+         break;
+        }
+     }
+    
+    }else{
+     pbstep2.push("-");
+     pbstep3.push("-");
+    }
+    
+    
+    if( i >= 7 ){
+      if( pbarray[i-1] == pbstep3[i-1] ){
+        pbwl.push(win);
+        if( i%3 == 1 ){
+            pbwls.push(1);
+        }
+        if( i%3 == 2 ){
+            if( pbwl[i-1] == lose ){
+                pbwls.push(2);
+            }else{
+                pbwls.push(0);
+            }
+        }
+        if( i%3 == 0 ){
+            if( pbwl[i-1] == lose && pbwl[i-2] == lose ){
+                pbwls.push(4);
+            }else{
+                pbwls.push(0);
+            }
+        }
+      }else{
+        pbwl.push(lose);
+        if( i%3 == 1 ){
+            pbwls.push(-1);
+        }
+        if( i%3 == 2 ){
+            if( pbwl[i-1] == lose ){
+                pbwls.push(-2);
+            }else{
+                pbwls.push(0);
+            }
+        }
+        if( i%3 == 0 ){
+            if( pbwl[i-1] == lose && pbwl[i-2] == lose ){
+                pbwls.push(-4);
+            }else{
+                pbwls.push(0);
+            }
+        }
+      }
+    }else{
+     pbwl.push(blank);
+     pbwls.push(0);
+    }
+    
+    if( i >= 6 ){
+        if( i%3 == 0 ){
+            pbstep4.push( 1 );
+        }
+        if( i%3 == 1 ){
+            if( pbwls[i-1] < 0 ){
+                pbstep4.push( 2 );
+            }else{
+                pbstep4.push( 0 );
+            }
+        }
+        if( i%3 == 2 ){
+            if( pbwls[i-1] < 0 ){
+                pbstep4.push( 4 );
+            }else{
+                pbstep4.push( 0 );
+            }
+        }
+    }else{
+     pbstep4.push( 0 );
+    }
+    
+    if( i == 1 ){ document.getElementById("road3r_"+ (1) ).innerHTML = pbwl[0]; }
+     document.getElementById("road3r_"+ (i) ).innerHTML = pbwl[i];
+    }
+    //console.log(pbstep3);
+    
+    if( pbstep3[pbstep3.length-1] == "P" ){
+     pbbetting = '<font size="6" color="blue">PLAYER</font>';
+    }else if( pbstep3[pbstep3.length-1] == "B" ){
+     pbbetting = '<font size="6" color="red">BANKER</font>';
+    }else{
+     pbbetting = '<font size="6" color="white">-</font>';
+    }
+    document.getElementById("betting").innerHTML = pbbetting;
+    document.getElementById("cost").innerHTML = '<font size="4" color="yellow">BET<br>' + pbstep4[pbstep4.length-1]*document.getElementById("hbetting").value  + '<br>Baht</font>';
+    document.getElementById("summary").innerHTML = '<font size="4" color="white">SUM<br>' + pbwls.reduce(add, 0)*document.getElementById("hbetting").value  + '<br>Baht</font>';
+    }
+    }
+    function add(a, b) {
+        return a + b;
+    }
+    </script>
+    <title>สูตรบาคาร่าพารวย</title></head>
+    <body>
+        <marquee scrollamount="20"><font size="10" color="red">ยินดีต้อนรับสายเสี่ยงดวงทุกท่าน เว็บสูตรเรายินดีให้บริการ</font></td></h1></marquee>
+        
+        <a href=><img src="Fuck.jpg" width="320" height="170" border="0"></a>
+    
+    
+    <div style="width:400px;overflow: auto;">
+      <div id="beadroadtable"><table style="table-layout: fixed;width:673px;" id="tblbeadroad"><colgroup><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"></colgroup><tbody><tr><td id="beadroad_1" valign="middle"></td><td id="beadroad_7" valign="middle"></td><td id="beadroad_13" valign="middle"></td><td id="beadroad_19" valign="middle"></td><td id="beadroad_25" valign="middle"></td><td id="beadroad_31" valign="middle"></td><td id="beadroad_37" valign="middle"></td><td id="beadroad_43" valign="middle"></td><td id="beadroad_49" valign="middle"></td><td id="beadroad_55" valign="middle"></td><td id="beadroad_61" valign="middle"></td><td id="beadroad_67" valign="middle"></td><td id="beadroad_73" valign="middle"></td><td id="beadroad_79" valign="middle"></td><td id="beadroad_85" valign="middle"></td><td id="beadroad_91" valign="middle"></td><td id="beadroad_97" valign="middle"></td><td id="beadroad_103" valign="middle"></td><td id="beadroad_109" valign="middle"></td><td id="beadroad_115" valign="middle"></td><td id="beadroad_121" valign="middle"></td><td id="beadroad_127" valign="middle"></td><td id="beadroad_133" valign="middle"></td><td id="beadroad_139" valign="middle"></td><td id="beadroad_145" valign="middle"></td><td id="beadroad_151" valign="middle"></td><td id="beadroad_157" valign="middle"></td><td id="beadroad_163" valign="middle"></td><td id="beadroad_169" valign="middle"></td><td id="beadroad_175" valign="middle"></td><td id="beadroad_181" valign="middle"></td><td id="beadroad_187" valign="middle"></td></tr><tr><td id="beadroad_2" valign="middle"></td><td id="beadroad_8" valign="middle"></td><td id="beadroad_14" valign="middle"></td><td id="beadroad_20" valign="middle"></td><td id="beadroad_26" valign="middle"></td><td id="beadroad_32" valign="middle"></td><td id="beadroad_38" valign="middle"></td><td id="beadroad_44" valign="middle"></td><td id="beadroad_50" valign="middle"></td><td id="beadroad_56" valign="middle"></td><td id="beadroad_62" valign="middle"></td><td id="beadroad_68" valign="middle"></td><td id="beadroad_74" valign="middle"></td><td id="beadroad_80" valign="middle"></td><td id="beadroad_86" valign="middle"></td><td id="beadroad_92" valign="middle"></td><td id="beadroad_98" valign="middle"></td><td id="beadroad_104" valign="middle"></td><td id="beadroad_110" valign="middle"></td><td id="beadroad_116" valign="middle"></td><td id="beadroad_122" valign="middle"></td><td id="beadroad_128" valign="middle"></td><td id="beadroad_134" valign="middle"></td><td id="beadroad_140" valign="middle"></td><td id="beadroad_146" valign="middle"></td><td id="beadroad_152" valign="middle"></td><td id="beadroad_158" valign="middle"></td><td id="beadroad_164" valign="middle"></td><td id="beadroad_170" valign="middle"></td><td id="beadroad_176" valign="middle"></td><td id="beadroad_182" valign="middle"></td><td id="beadroad_188" valign="middle"></td></tr><tr><td id="beadroad_3" valign="middle"></td><td id="beadroad_9" valign="middle"></td><td id="beadroad_15" valign="middle"></td><td id="beadroad_21" valign="middle"></td><td id="beadroad_27" valign="middle"></td><td id="beadroad_33" valign="middle"></td><td id="beadroad_39" valign="middle"></td><td id="beadroad_45" valign="middle"></td><td id="beadroad_51" valign="middle"></td><td id="beadroad_57" valign="middle"></td><td id="beadroad_63" valign="middle"></td><td id="beadroad_69" valign="middle"></td><td id="beadroad_75" valign="middle"></td><td id="beadroad_81" valign="middle"></td><td id="beadroad_87" valign="middle"></td><td id="beadroad_93" valign="middle"></td><td id="beadroad_99" valign="middle"></td><td id="beadroad_105" valign="middle"></td><td id="beadroad_111" valign="middle"></td><td id="beadroad_117" valign="middle"></td><td id="beadroad_123" valign="middle"></td><td id="beadroad_129" valign="middle"></td><td id="beadroad_135" valign="middle"></td><td id="beadroad_141" valign="middle"></td><td id="beadroad_147" valign="middle"></td><td id="beadroad_153" valign="middle"></td><td id="beadroad_159" valign="middle"></td><td id="beadroad_165" valign="middle"></td><td id="beadroad_171" valign="middle"></td><td id="beadroad_177" valign="middle"></td><td id="beadroad_183" valign="middle"></td><td id="beadroad_189" valign="middle"></td></tr><tr><td id="beadroad_4" valign="middle"></td><td id="beadroad_10" valign="middle"></td><td id="beadroad_16" valign="middle"></td><td id="beadroad_22" valign="middle"></td><td id="beadroad_28" valign="middle"></td><td id="beadroad_34" valign="middle"></td><td id="beadroad_40" valign="middle"></td><td id="beadroad_46" valign="middle"></td><td id="beadroad_52" valign="middle"></td><td id="beadroad_58" valign="middle"></td><td id="beadroad_64" valign="middle"></td><td id="beadroad_70" valign="middle"></td><td id="beadroad_76" valign="middle"></td><td id="beadroad_82" valign="middle"></td><td id="beadroad_88" valign="middle"></td><td id="beadroad_94" valign="middle"></td><td id="beadroad_100" valign="middle"></td><td id="beadroad_106" valign="middle"></td><td id="beadroad_112" valign="middle"></td><td id="beadroad_118" valign="middle"></td><td id="beadroad_124" valign="middle"></td><td id="beadroad_130" valign="middle"></td><td id="beadroad_136" valign="middle"></td><td id="beadroad_142" valign="middle"></td><td id="beadroad_148" valign="middle"></td><td id="beadroad_154" valign="middle"></td><td id="beadroad_160" valign="middle"></td><td id="beadroad_166" valign="middle"></td><td id="beadroad_172" valign="middle"></td><td id="beadroad_178" valign="middle"></td><td id="beadroad_184" valign="middle"></td><td id="beadroad_190" valign="middle"></td></tr><tr><td id="beadroad_5" valign="middle"></td><td id="beadroad_11" valign="middle"></td><td id="beadroad_17" valign="middle"></td><td id="beadroad_23" valign="middle"></td><td id="beadroad_29" valign="middle"></td><td id="beadroad_35" valign="middle"></td><td id="beadroad_41" valign="middle"></td><td id="beadroad_47" valign="middle"></td><td id="beadroad_53" valign="middle"></td><td id="beadroad_59" valign="middle"></td><td id="beadroad_65" valign="middle"></td><td id="beadroad_71" valign="middle"></td><td id="beadroad_77" valign="middle"></td><td id="beadroad_83" valign="middle"></td><td id="beadroad_89" valign="middle"></td><td id="beadroad_95" valign="middle"></td><td id="beadroad_101" valign="middle"></td><td id="beadroad_107" valign="middle"></td><td id="beadroad_113" valign="middle"></td><td id="beadroad_119" valign="middle"></td><td id="beadroad_125" valign="middle"></td><td id="beadroad_131" valign="middle"></td><td id="beadroad_137" valign="middle"></td><td id="beadroad_143" valign="middle"></td><td id="beadroad_149" valign="middle"></td><td id="beadroad_155" valign="middle"></td><td id="beadroad_161" valign="middle"></td><td id="beadroad_167" valign="middle"></td><td id="beadroad_173" valign="middle"></td><td id="beadroad_179" valign="middle"></td><td id="beadroad_185" valign="middle"></td><td id="beadroad_191" valign="middle"></td></tr><tr><td id="beadroad_6" valign="middle"></td><td id="beadroad_12" valign="middle"></td><td id="beadroad_18" valign="middle"></td><td id="beadroad_24" valign="middle"></td><td id="beadroad_30" valign="middle"></td><td id="beadroad_36" valign="middle"></td><td id="beadroad_42" valign="middle"></td><td id="beadroad_48" valign="middle"></td><td id="beadroad_54" valign="middle"></td><td id="beadroad_60" valign="middle"></td><td id="beadroad_66" valign="middle"></td><td id="beadroad_72" valign="middle"></td><td id="beadroad_78" valign="middle"></td><td id="beadroad_84" valign="middle"></td><td id="beadroad_90" valign="middle"></td><td id="beadroad_96" valign="middle"></td><td id="beadroad_102" valign="middle"></td><td id="beadroad_108" valign="middle"></td><td id="beadroad_114" valign="middle"></td><td id="beadroad_120" valign="middle"></td><td id="beadroad_126" valign="middle"></td><td id="beadroad_132" valign="middle"></td><td id="beadroad_138" valign="middle"></td><td id="beadroad_144" valign="middle"></td><td id="beadroad_150" valign="middle"></td><td id="beadroad_156" valign="middle"></td><td id="beadroad_162" valign="middle"></td><td id="beadroad_168" valign="middle"></td><td id="beadroad_174" valign="middle"></td><td id="beadroad_180" valign="middle"></td><td id="beadroad_186" valign="middle"></td><td id="beadroad_192" valign="middle"></td></tr></tbody></table><br></div>
+      <div id="road3table"><table style="table-layout: fixed;width:673px;" id="tblroad3"><colgroup><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"></colgroup><tbody><tr><td id="road3_1" valign="middle"></td><td id="road3_4" valign="middle"></td><td id="road3_7" valign="middle"></td><td id="road3_10" valign="middle"></td><td id="road3_13" valign="middle"></td><td id="road3_16" valign="middle"></td><td id="road3_19" valign="middle"></td><td id="road3_22" valign="middle"></td><td id="road3_25" valign="middle"></td><td id="road3_28" valign="middle"></td><td id="road3_31" valign="middle"></td><td id="road3_34" valign="middle"></td><td id="road3_37" valign="middle"></td><td id="road3_40" valign="middle"></td><td id="road3_43" valign="middle"></td><td id="road3_46" valign="middle"></td><td id="road3_49" valign="middle"></td><td id="road3_52" valign="middle"></td><td id="road3_55" valign="middle"></td><td id="road3_58" valign="middle"></td><td id="road3_61" valign="middle"></td><td id="road3_64" valign="middle"></td><td id="road3_67" valign="middle"></td><td id="road3_70" valign="middle"></td><td id="road3_73" valign="middle"></td><td id="road3_76" valign="middle"></td><td id="road3_79" valign="middle"></td><td id="road3_82" valign="middle"></td><td id="road3_85" valign="middle"></td><td id="road3_88" valign="middle"></td><td id="road3_91" valign="middle"></td><td id="road3_94" valign="middle"></td></tr><tr><td id="road3_2" valign="middle"></td><td id="road3_5" valign="middle"></td><td id="road3_8" valign="middle"></td><td id="road3_11" valign="middle"></td><td id="road3_14" valign="middle"></td><td id="road3_17" valign="middle"></td><td id="road3_20" valign="middle"></td><td id="road3_23" valign="middle"></td><td id="road3_26" valign="middle"></td><td id="road3_29" valign="middle"></td><td id="road3_32" valign="middle"></td><td id="road3_35" valign="middle"></td><td id="road3_38" valign="middle"></td><td id="road3_41" valign="middle"></td><td id="road3_44" valign="middle"></td><td id="road3_47" valign="middle"></td><td id="road3_50" valign="middle"></td><td id="road3_53" valign="middle"></td><td id="road3_56" valign="middle"></td><td id="road3_59" valign="middle"></td><td id="road3_62" valign="middle"></td><td id="road3_65" valign="middle"></td><td id="road3_68" valign="middle"></td><td id="road3_71" valign="middle"></td><td id="road3_74" valign="middle"></td><td id="road3_77" valign="middle"></td><td id="road3_80" valign="middle"></td><td id="road3_83" valign="middle"></td><td id="road3_86" valign="middle"></td><td id="road3_89" valign="middle"></td><td id="road3_92" valign="middle"></td><td id="road3_95" valign="middle"></td></tr><tr><td id="road3_3" valign="middle"></td><td id="road3_6" valign="middle"></td><td id="road3_9" valign="middle"></td><td id="road3_12" valign="middle"></td><td id="road3_15" valign="middle"></td><td id="road3_18" valign="middle"></td><td id="road3_21" valign="middle"></td><td id="road3_24" valign="middle"></td><td id="road3_27" valign="middle"></td><td id="road3_30" valign="middle"></td><td id="road3_33" valign="middle"></td><td id="road3_36" valign="middle"></td><td id="road3_39" valign="middle"></td><td id="road3_42" valign="middle"></td><td id="road3_45" valign="middle"></td><td id="road3_48" valign="middle"></td><td id="road3_51" valign="middle"></td><td id="road3_54" valign="middle"></td><td id="road3_57" valign="middle"></td><td id="road3_60" valign="middle"></td><td id="road3_63" valign="middle"></td><td id="road3_66" valign="middle"></td><td id="road3_69" valign="middle"></td><td id="road3_72" valign="middle"></td><td id="road3_75" valign="middle"></td><td id="road3_78" valign="middle"></td><td id="road3_81" valign="middle"></td><td id="road3_84" valign="middle"></td><td id="road3_87" valign="middle"></td><td id="road3_90" valign="middle"></td><td id="road3_93" valign="middle"></td><td id="road3_96" valign="middle"></td></tr></tbody></table><br></div>
+      <div id="road3rtable"><table style="table-layout: fixed;width:673px;" id="tblroad3r"><colgroup><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"><col width="13"></colgroup><tbody><tr><td id="road3r_1" valign="middle"></td><td id="road3r_4" valign="middle"></td><td id="road3r_7" valign="middle"></td><td id="road3r_10" valign="middle"></td><td id="road3r_13" valign="middle"></td><td id="road3r_16" valign="middle"></td><td id="road3r_19" valign="middle"></td><td id="road3r_22" valign="middle"></td><td id="road3r_25" valign="middle"></td><td id="road3r_28" valign="middle"></td><td id="road3r_31" valign="middle"></td><td id="road3r_34" valign="middle"></td><td id="road3r_37" valign="middle"></td><td id="road3r_40" valign="middle"></td><td id="road3r_43" valign="middle"></td><td id="road3r_46" valign="middle"></td><td id="road3r_49" valign="middle"></td><td id="road3r_52" valign="middle"></td><td id="road3r_55" valign="middle"></td><td id="road3r_58" valign="middle"></td><td id="road3r_61" valign="middle"></td><td id="road3r_64" valign="middle"></td><td id="road3r_67" valign="middle"></td><td id="road3r_70" valign="middle"></td><td id="road3r_73" valign="middle"></td><td id="road3r_76" valign="middle"></td><td id="road3r_79" valign="middle"></td><td id="road3r_82" valign="middle"></td><td id="road3r_85" valign="middle"></td><td id="road3r_88" valign="middle"></td><td id="road3r_91" valign="middle"></td><td id="road3r_94" valign="middle"></td></tr><tr><td id="road3r_2" valign="middle"></td><td id="road3r_5" valign="middle"></td><td id="road3r_8" valign="middle"></td><td id="road3r_11" valign="middle"></td><td id="road3r_14" valign="middle"></td><td id="road3r_17" valign="middle"></td><td id="road3r_20" valign="middle"></td><td id="road3r_23" valign="middle"></td><td id="road3r_26" valign="middle"></td><td id="road3r_29" valign="middle"></td><td id="road3r_32" valign="middle"></td><td id="road3r_35" valign="middle"></td><td id="road3r_38" valign="middle"></td><td id="road3r_41" valign="middle"></td><td id="road3r_44" valign="middle"></td><td id="road3r_47" valign="middle"></td><td id="road3r_50" valign="middle"></td><td id="road3r_53" valign="middle"></td><td id="road3r_56" valign="middle"></td><td id="road3r_59" valign="middle"></td><td id="road3r_62" valign="middle"></td><td id="road3r_65" valign="middle"></td><td id="road3r_68" valign="middle"></td><td id="road3r_71" valign="middle"></td><td id="road3r_74" valign="middle"></td><td id="road3r_77" valign="middle"></td><td id="road3r_80" valign="middle"></td><td id="road3r_83" valign="middle"></td><td id="road3r_86" valign="middle"></td><td id="road3r_89" valign="middle"></td><td id="road3r_92" valign="middle"></td><td id="road3r_95" valign="middle"></td></tr><tr><td id="road3r_3" valign="middle"></td><td id="road3r_6" valign="middle"></td><td id="road3r_9" valign="middle"></td><td id="road3r_12" valign="middle"></td><td id="road3r_15" valign="middle"></td><td id="road3r_18" valign="middle"></td><td id="road3r_21" valign="middle"></td><td id="road3r_24" valign="middle"></td><td id="road3r_27" valign="middle"></td><td id="road3r_30" valign="middle"></td><td id="road3r_33" valign="middle"></td><td id="road3r_36" valign="middle"></td><td id="road3r_39" valign="middle"></td><td id="road3r_42" valign="middle"></td><td id="road3r_45" valign="middle"></td><td id="road3r_48" valign="middle"></td><td id="road3r_51" valign="middle"></td><td id="road3r_54" valign="middle"></td><td id="road3r_57" valign="middle"></td><td id="road3r_60" valign="middle"></td><td id="road3r_63" valign="middle"></td><td id="road3r_66" valign="middle"></td><td id="road3r_69" valign="middle"></td><td id="road3r_72" valign="middle"></td><td id="road3r_75" valign="middle"></td><td id="road3r_78" valign="middle"></td><td id="road3r_81" valign="middle"></td><td id="road3r_84" valign="middle"></td><td id="road3r_87" valign="middle"></td><td id="road3r_90" valign="middle"></td><td id="road3r_93" valign="middle"></td><td id="road3r_96" valign="middle"></td></tr></tbody></table><br></div>
+    </div>
+    <br>
+    <div id="button">
+      <button class="button oo" onclick="location.reload()"><b>&lt;&lt;</b></button>
+      <button class="button oo" onclick="undo()"><b>&lt;</b></button>
+      <button class="button player" onclick="insert('P')">P</button>
+      <button class="button banker" onclick="insert('B')">B</button>
+      <button class="button tie" onclick="insert('T')">T</button>
+    </div>
+    <br>
+    <br>
+    <br>
+    <table style="table-layout: fixed;width:400px;background-color:black;">
+      <colgroup>
+      <col width="50%">
+      <col width="25%">
+      <col width="25%">
+      </colgroup>
+      <tbody>
+        <tr style="height:60px;">
+          <td colspan="3" align="center"><font size="4" color="white">BET PER ROUND  : </font>
+            <input style="font-size:20pt;" maxlength="6" size="6" value="0" id="hbetting" type="text"></td>
+        </tr>
+        <tr style="height:100px;">
+          <td id="betting" align="center"><font size="5" color="white">BETTING</font></td>
+          <td id="cost" align="center"><font size="5" color="yellow">BET</font></td>
+          <td id="summary" align="center"><font size="5" color="red">TOTAL</font></td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="position:fixed;bottom:0px">&nbsp;</p>
+    <script>
+    loadtable(32,3,"road3");
+    loadtable(32,3,"road3r");
+    loadtable(32,6,"beadroad");
+    </script>
+    
+    
+    </body>
